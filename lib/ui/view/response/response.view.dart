@@ -1,7 +1,9 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:m4_app_bola_8/data/constants.dart';
+import 'package:m4_app_bola_8/ui/components/texts/custom_text.component.dart';
 import 'package:m4_app_bola_8/ui/view/response/components/response_background.component.dart';
+import 'package:shake/shake.dart';
 
 class ResponseView extends StatefulWidget {
   final String response;
@@ -12,17 +14,25 @@ class ResponseView extends StatefulWidget {
 }
 
 class _ResponseViewState extends State<ResponseView> {
-  // @override
-  // Widget build(BuildContext context) {
-  //   return Scaffold(
-  //     appBar: AppBar(
-  //       title: const Text('Respuesta'),
-  //     ),
-  //     body: Center(
-  //       child: Text(widget.response),
-  //     ),
-  //   );
-  // }
+  late ShakeDetector _detector;
+
+  @override
+  void initState() {
+    super.initState();
+    _detector = ShakeDetector.autoStart(
+      onPhoneShake: () => Navigator.pop(context),
+      minimumShakeCount: 1,
+      shakeSlopTimeMS: 500,
+      shakeCountResetTime: 3000,
+      shakeThresholdGravity: 2.7,
+    );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _detector.stopListening();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,6 +71,10 @@ class _ResponseViewState extends State<ResponseView> {
                         ),
                       )),
                 ),
+              ),
+              const Center(
+                child: CustomText(
+                    'Agita tu dispositivo para volver a realizar una pregunta'),
               )
             ],
           ),

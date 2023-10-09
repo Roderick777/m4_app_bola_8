@@ -6,6 +6,7 @@ import 'package:m4_app_bola_8/ui/view/home/components/home_background.component.
 import 'package:m4_app_bola_8/ui/view/response/response.view.dart';
 import 'package:m4_app_bola_8/utils/openai.util.dart';
 import 'package:roo_utils/utils/snackbar.util.dart';
+import 'package:shake/shake.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -15,8 +16,10 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
-  final TextEditingController _questionController = TextEditingController(text: '');
+  final TextEditingController _questionController =
+      TextEditingController(text: '');
   late AnimationController _eightAnimation;
+  late ShakeDetector _detector;
   bool _isLoadingResponse = false;
 
   void _getResponse(BuildContext context) {
@@ -32,12 +35,10 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   }
 
   void _showValidationMessage() {
+    const txt = 'Ingresa una pregunta coherente.';
     showSnackbar(
       context,
-      const CustomText(
-        'La pregunta debe ser coherente y tener al menos 10 caracteres.',
-        style: TextStyle(color: Colors.white),
-      ),
+      const CustomText(txt, style: TextStyle(color: Colors.white)),
     );
   }
 
@@ -53,6 +54,13 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     );
   }
 
+  void _onShake() {
+    FocusScope.of(context).unfocus();
+    _questionController.text = '';
+    _eightAnimation.reset();
+    _eightAnimation.forward();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -61,6 +69,20 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       duration: const Duration(seconds: 2),
       vsync: this,
     );
+
+    _detector = ShakeDetector.autoStart(
+      onPhoneShake: () => _onShake(),
+      minimumShakeCount: 1,
+      shakeSlopTimeMS: 500,
+      shakeCountResetTime: 3000,
+      shakeThresholdGravity: 2.7,
+    );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _detector.stopListening();
   }
 
   @override
@@ -73,55 +95,74 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
           padding: const EdgeInsets.all(16),
           child: ListView(
             children: [
-              const SafeArea(child: Text('')),
-              Center(
-                child: Text(
-                  'Haz una pregunta',
-                  style: GoogleFonts.dancingScript(fontSize: 32, color: kPrimaryTextColor),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  color: Colors.white,
+                  boxShadow: const [
+                    BoxShadow(blurRadius: 10, color: Color(0xffe0e5ef))
+                  ],
                 ),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _questionController,
-                maxLines: null,
-                decoration: InputDecoration(
-                  hintText: 'Ingresa aquí tu pregunta', // Texto de ayuda
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0)),
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                child: _isLoadingResponse
-                    ? const SizedBox(
-                        child: Center(child: CircularProgressIndicator(color: kPrimaryColor)),
-                      )
-                    : ElevatedButton(
-                        onPressed: () => _getResponse(context),
-                        child: const CustomText(
-                          'Preguntar',
-                          style: TextStyle(
-                            color: kPrimaryColor,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                child: Column(
+                  children: [
+                    const SafeArea(child: Text('')),
+                    Center(
+                      child: Text(
+                        'Haz una pregunta',
+                        style: GoogleFonts.dancingScript(
+                          fontSize: 32,
+                          color: kPrimaryTextColor,
                         ),
                       ),
-              ),
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: () async {
-                  _eightAnimation.reset();
-                  _eightAnimation.forward();
-                },
-                child: const CustomText(
-                  'Refrescar',
-                  style: TextStyle(
-                    color: kPrimaryColor,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                    ),
+                    const SizedBox(height: 16),
+                    Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: TextFormField(
+                        controller: _questionController,
+                        maxLines: null,
+                        decoration: InputDecoration(
+                            hintText:
+                                'Ingresa aquí tu pregunta', // Texto de ayuda
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                            filled: true,
+                            fillColor: Colors.white),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      child: _isLoadingResponse
+                          ? const SizedBox(
+                              child: Center(
+                                  child: CircularProgressIndicator(
+                                      color: kPrimaryColor)),
+                            )
+                          : ElevatedButton(
+                              onPressed: () => _getResponse(context),
+                              child: const CustomText(
+                                'Preguntar',
+                                style: TextStyle(
+                                  color: kPrimaryColor,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                    ),
+                    const SizedBox(height: 16),
+                    const CustomText(
+                      'Agita para volver a preguntar',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
                 ),
-              ),
+              )
             ],
           ),
         ),

@@ -15,7 +15,8 @@ class HomeBackground extends StatefulWidget {
   State<HomeBackground> createState() => _HomeBackgroundState();
 }
 
-class _HomeBackgroundState extends State<HomeBackground> with SingleTickerProviderStateMixin {
+class _HomeBackgroundState extends State<HomeBackground>
+    with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -28,12 +29,11 @@ class _HomeBackgroundState extends State<HomeBackground> with SingleTickerProvid
           child: GestureDetector(
             onTap: () {
               widget.animation.forward();
-              // _eightAnimation.reset();
             },
             child: RotationTransition(
               turns: widget.animation,
               child: EightBall(
-                size: size.width - 64,
+                size: size.width > 64 ? size.width - 64 : size.width,
                 color: kPrimaryColor.withAlpha(100),
               ),
             ),
